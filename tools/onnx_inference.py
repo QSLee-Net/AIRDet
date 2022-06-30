@@ -127,7 +127,6 @@ if __name__ == '__main__':
     session = onnxruntime.InferenceSession(args.model, sess_options=sess_options)
     t_all = time.time() - t0
     print("Prediction cost {:.4f}s".format(t_all))
-    print("00000")
     ort_inputs = {session.get_inputs()[0].name: img_np}
     output = session.run(None, ort_inputs)
 

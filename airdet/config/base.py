@@ -77,7 +77,7 @@ testing = easydict({
             "use_tta": False,
             "augmentation": tta,
             "conf_threshold": 0.05,
-            "nms_iou_threshold": 0.5,
+            "nms_iou_threshold": 0.6,
             "multi_gpu": True,
             "input_min_size": (640,),
             "input_max_size": 640,

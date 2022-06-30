@@ -3,7 +3,7 @@
 
 ## Introduction
 Welcome to AIRDet! 
-AIRDet is an efficiency-oriented anchor-free object detector, aims to enable robust object detection in various industry scene. With simple design, AIRDet-s outperforms series competitor e.g.(YOLOX-s, PP-YOLOE-s), and still maintains fast speed. Moreover, here you can find not only powerful models, but aslo highly efficient training strategies and complete tools from training to deployment.  
+AIRDet is an efficiency-oriented anchor-free object detector, aims to enable robust object detection in various industry scene. With simple design, AIRDet-s outperforms series competitor e.g.(YOLOX-s, PP-YOLOE-s), and still maintains fast speed. Moreover, here you can find not only powerful models, but also highly efficient training strategies and complete tools from training to deployment.  
 
 ## Updates
 -  **[2022/06/23: We release  AIRDet-0.0.1!]**

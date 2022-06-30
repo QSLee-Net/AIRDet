@@ -14,7 +14,7 @@ import torch
 from loguru import logger
 
 @logger.catch
-def trt_speed(trt_path, h, w):
+def trt_speed(trt_path, batch_size, h, w):
 
     # settings
     target_dtype = np.float32
@@ -29,8 +29,8 @@ def trt_speed(trt_path, h, w):
     model = runtime.deserialize_cuda_engine(t.read())
     context = model.create_execution_context()
 
-    input_batch = np.ones([1, 3, h, w], dtype = target_dtype)
-    output = np.empty([1, 8400, 85], dtype = target_dtype)
+    input_batch = np.ones([batch_size, 3, h, w], dtype = target_dtype)
+    output = np.empty([batch_size, 8400, config.model.head.num_classes + 5], dtype = target_dtype)
 
     d_input = cuda.mem_alloc(1 * input_batch.nbytes)
     d_output = cuda.mem_alloc(1 * output.nbytes)
@@ -43,7 +43,7 @@ def trt_speed(trt_path, h, w):
         # transfer input data to device
         cuda.memcpy_htod_async(d_input, batch, stream)
         # execute model
-        context.execute_async_v2(bindings, stream.handle, None)  # 此处采用异步推理。如果想要同步推理，需将execute_async_v2替换成execute_v2
+        context.execute_async_v2(bindings, stream.handle, None)
         # transfer predictions back
         cuda.memcpy_dtoh_async(output, d_output, stream)
         # syncronize threads
@@ -60,4 +60,4 @@ def trt_speed(trt_path, h, w):
     for i in range(500):
         pred = predict(input_batch)
     t_all = time.time() - t0
-    logger.info("Model inference time {:.4f}s / img per device".format(t_all / 500))
+    logger.info("Model inference time {:.4f}s / img per device".format(t_all / 500 / batch_size))

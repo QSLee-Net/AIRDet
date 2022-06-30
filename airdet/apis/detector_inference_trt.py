@@ -1,5 +1,5 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 # Copyright (C) Alibaba Group Holding Limited. All rights reserved.
+
 import os
 
 import torch
@@ -43,7 +43,7 @@ def compute_on_dataset(config, context, data_loader, device, timer=None, tta=Fal
             img_np = images.tensors.numpy()
 
             input_batch = img_np.astype(np.float32)
-            trt_output = np.empty([1, 8400, 85], dtype = np.float32)
+            trt_output = np.empty([config.testing.images_per_batch, 8400, config.model.head.num_classes + 5], dtype = np.float32)
 
             d_input = cuda.mem_alloc(1 * input_batch.nbytes)
             d_output = cuda.mem_alloc(1 * trt_output.nbytes)

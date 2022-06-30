@@ -134,18 +134,6 @@ def make_data_loader(cfg, is_train=True):
         shuffle = False
         start_iter = 0
 
-    if images_per_gpu > 1:
-        logger.warning(
-            "When using more than one image per GPU you may encounter "
-            "an out-of-memory (OOM) error if your GPU does not have "
-            "sufficient memory. If this happens, you can reduce "
-            "config.training_images_per_batch (for training) or "
-            "config.testing_images_per_batch (for inference). For training, you must "
-            "also adjust the learning rate and schedule length according "
-            "to the linear scaling rule. See for example: "
-            "https://github.com/facebookresearch/Detectron/blob/master/configs/getting_started/tutorial_1gpu_e2e_faster_rcnn_R-50-FPN.yaml#L14"
-        )
-
     # group images which have similar aspect ratio. In this case, we only
     # group in two cases: those with width / height > 1, and the other way around,
     # but the code supports more general grouping strategy

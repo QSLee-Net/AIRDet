@@ -44,6 +44,9 @@ def make_parser():
     parser.add_argument("--conf", default=None, type=float, help="test conf")
     parser.add_argument("--nms", default=None, type=float, help="test nms threshold")
     parser.add_argument(
+        "--batch_size", type=int, default=None, help="inference image batch nums"
+    )
+    parser.add_argument(
         "--inference_h", type=int, default="640", help="inference image shape of h"
     )
     parser.add_argument(
@@ -94,6 +97,8 @@ def main():
         config.testing.conf_threshold = args.conf
     if args.nms is not None:
         config.testing.nms_iou_threshold = args.nms
+    if args.batch_size is not None:
+        config.testing.images_per_batch = args.batch_size
 
     # set logs
     loggert = trt.Logger(trt.Logger.INFO)
@@ -127,8 +132,10 @@ def main():
             device = device,
             output_folder = output_folder,
         )
+    context.pop()
+    del context
 
-    trt_speed(trt_path=args.trt, h=args.inference_h, w=args.inference_w)
+    trt_speed(trt_path=args.trt, batch_size=args.batch_size, h=args.inference_h, w=args.inference_w)
 
 if __name__ == "__main__":
     main()

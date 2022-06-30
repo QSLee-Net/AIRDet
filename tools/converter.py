@@ -28,6 +28,9 @@ def make_parser():
     )
     parser.add_argument("-c", "--ckpt", default=None, type=str, help="ckpt path")
     parser.add_argument(
+        "--batch_size", type=int, default=None, help="inference image batch nums"
+    )
+    parser.add_argument(
         "--inference_h", type=int, default="640", help="inference image shape of h"
     )
     parser.add_argument(
@@ -58,7 +61,7 @@ def make_parser():
 
 
 @logger.catch
-def trt_export(onnx_path, inference_h, inference_w, mode):
+def trt_export(onnx_path, batch_size, inference_h, inference_w, mode):
     import tensorrt as trt
     import sys
 
@@ -72,7 +75,7 @@ def trt_export(onnx_path, inference_h, inference_w, mode):
     with trt.Builder(TRT_LOGGER) as builder, builder.create_network(EXPLICIT_BATCH) \
     as network, trt.OnnxParser(network, TRT_LOGGER) as parser:
         builder.max_workspace_size = 1 << 30
-        builder.max_batch_size = 1
+        builder.max_batch_size = batch_size
         print('Loading ONNX file from path {}...'.format(onnx_path))
 
         if mode == 'trt_16':
@@ -86,7 +89,7 @@ def trt_export(onnx_path, inference_h, inference_w, mode):
                 for error in range(parser.num_errors):
                     print (parser.get_error(error))
 
-        network.get_input(0).shape = [1, 3, inference_h, inference_w]
+        network.get_input(0).shape = [batch_size, 3, inference_h, inference_w]
         print('Completed parsing of ONNX file')
         engine = builder.build_cuda_engine(network)
         with open(engine_path, "wb") as f:
@@ -102,6 +105,9 @@ def main():
     # init and load model
     config = parse_config(args.config_file)
     config.merge(args.opts)
+
+    if args.batch_size is not None:
+        config.testing.images_per_batch = args.batch_size
 
     # build model
     model = build_local_model(config, "cuda")
@@ -120,7 +126,7 @@ def main():
     # decouple postprocess
     model.head.decode_in_inference = False
 
-    dummy_input = torch.randn(1, 3, args.inference_h, args.inference_w)
+    dummy_input = torch.randn(args.batch_size, 3, args.inference_h, args.inference_w)
     predictions = model(dummy_input)
     torch.onnx._export(
         model,
@@ -133,7 +139,7 @@ def main():
     logger.info("generated onnx model named {}".format(args.output_name))
 
     if(args.mode in ['trt_32', 'trt_16']):
-        trt_export(args.output_name, args.inference_h, args.inference_w, args.mode)
+        trt_export(args.output_name, args.batch_size, args.inference_h, args.inference_w, args.mode)
 
 if __name__ == "__main__":
     main()
