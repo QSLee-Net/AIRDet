@@ -1,14 +1,13 @@
 <div align="center"><img src="assets/airdet.png" width="500"></div>
 
-
 ## Introduction
 Welcome to AIRDet! 
-AIRDet is an efficiency-oriented anchor-free object detector, aims to enable robust object detection in various industry scene. With simple design, AIRDet-s outperforms series competitor e.g.(YOLOX-s, PP-YOLOE-s), and still maintains fast speed. Moreover, here you can find not only powerful models, but also highly efficient training strategies and complete tools from training to deployment.  
+AIRDet is an efficiency-oriented anchor-free object detector, aims to enable robust object detection in various industry scene. With simple design, **AIRDet-s outperforms series competitor e.g.(YOLOX-s, MT-YOLOv6-s, PP-YOLOE-s), and still maintains fast speed.** Moreover, here you can find not only powerful models, but also highly efficient training strategies and complete tools from training to deployment.  
 
 ## Updates
 -  **[2022/06/23: We release  AIRDet-0.0.1!]**
-    * release AIRDet-series object detection models, e.g. AIRDet-s and AIRDet-m. AIRDet-s achievs mAP as 44.1% on COCO val dataset and 2.8ms latency on Nvidia-V100. AIRDet-m is a larger model build upon AIRDet-s in a heavy neck paradigm, which achieves robust improvement in detection of different object scales. For more information, please refer to [giraffe-neck](https://arxiv.org/abs/2202.04256).
-    * release model convert tools for esay deployment, surppots onnx and tensorRT-fp32, TensorRT-fp16.
+    * Release AIRDet-series object detection models, e.g. AIRDet-s and AIRDet-m. AIRDet-s achievs mAP as 44.1% on COCO val dataset and 2.8ms latency on Nvidia-V100. AIRDet-m is a larger model build upon AIRDet-s in a heavy neck paradigm, which achieves robust improvement in detection of different object scales. For more information, please refer to [Giraffe-neck](https://arxiv.org/abs/2202.04256).
+    * Release model convert tools for esay deployment, surppots onnx and tensorRT-fp32, TensorRT-fp16.
 
 ## Comming soon
 - High efficient backbone.
@@ -23,7 +22,7 @@ AIRDet is an efficiency-oriented anchor-free object detector, aims to enable rob
 |[AIRDet-s](./configs/airdet_s.py) | 640 | 44.2 | 4.4 | 2.8 | 27.56 | [link]() |
 |[AIRDet-m](./configs/airdet_m.py) | 640 | 48.2 | 8.3 | 4.4 | 76.61 | [link]() |
 
-- We reported the mAP of models on COCO2017 validation set.
+- We report the mAP of models on COCO2017 validation set.
 - The latency in this table are measured without post-processing.
 
 ## Quick Start
