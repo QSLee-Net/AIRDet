@@ -64,7 +64,7 @@ def decode_output(outputs, img_size, p6=False):
 
 
 def make_parser():
-    parser = argparse.ArgumentParser("lightvision onnx inference")
+    parser = argparse.ArgumentParser("airdet onnx inference")
 
     parser.add_argument("-f", "--config_file", default=None, type=str, help="pls input your config file",)
     parser.add_argument(
@@ -90,14 +90,14 @@ def make_parser():
     parser.add_argument(
         "--nms",
         type=float,
-        default=0.6,
+        default=0.7,
         help="nms threshould to filter the result.",
     )
     parser.add_argument(
-        "--input_shape",
-        type=str,
-        default="448,640",
-        help="Specify an input shape for inference.",
+        "--img_size", 
+        type=int, 
+        default="640", 
+        help="inference image shape"
     )
     return parser
 
@@ -105,7 +105,7 @@ def make_parser():
 if __name__ == '__main__':
     args = make_parser().parse_args()
 
-    input_shape = tuple(map(int, args.input_shape.split(',')))
+    input_shape = tuple(args.img_size, args.img_size)
     origin_img = np.asarray(Image.open(args.path).convert("RGB"))
 
     config = parse_config(args.config_file)
@@ -129,8 +129,6 @@ if __name__ == '__main__':
     print("Prediction cost {:.4f}s".format(t_all))
     ort_inputs = {session.get_inputs()[0].name: img_np}
     output = session.run(None, ort_inputs)
-
-
 
     if config.model.head['name'] == 'GFocalV2':
         decode_output = torch.Tensor(output[0])

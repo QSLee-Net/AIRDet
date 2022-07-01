@@ -20,7 +20,7 @@ AIRDet is an efficiency-oriented anchor-free object detector, aims to enable rob
 |Model |size |mAP<sup>val<br>0.5:0.95 | Latency V100<br>TRT-FP32-BS32| Latency V100<br>TRT-FP16-BS32| FLOPs<br>(G)| weights |
 | ------        |:---: | :---:     |:---:|:---: | :---: | :----: |
 |[Yolox-s](./configs/yolox_s.py)   | 640 | 40.5 | 3.4 | 2.3 | 26.81 | [link]() |
-|[AIRDet-s](./configs/airdet_s.py) | 640 | 44.1 | 4.4 | 2.8 | 27.56 | [link]() |
+|[AIRDet-s](./configs/airdet_s.py) | 640 | 44.2 | 4.4 | 2.8 | 27.56 | [link]() |
 |[AIRDet-m](./configs/airdet_m.py) | 640 | 48.2 | 8.3 | 4.4 | 76.61 | [link]() |
 
 - We reported the mAP of models on COCO2017 validation set.
@@ -155,18 +155,55 @@ Step.5 Create your config file to control everything, including model setting, t
 
 ## Deploy
 
+<details>
+<summary>Installation</summary>
+
+Step1. Install ONNX.
+```shell
+pip install onnx==1.8.1
+pip install onnxruntime==1.8.0
+pip install onnx-simplifier==0.3.5
+```
+Step2. Install CUDA、CuDNN、TensorRT and pyCUDA
+2.1 CUDA
+```shell
+wget https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run
+sudo sh cuda_10.2.89_440.33.01_linux.run
+export PATH=$PATH:/usr/local/cuda-10.2/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.2/lib64
+source ~/.bashrc
+```
+2.2 CuDNN
+```shell
+sudo cp cuda/include/* /usr/local/cuda/include/
+sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64/
+sudo chmod a+r /usr/local/cuda/include/cudnn.h
+sudo chmod a+r /usr/local/cuda/lib64/libcudnn*
+```
+2.3 TensorRT
+```shell
+cd TensorRT-7.2.1.6/python
+pip install tensorrt-7.2.1.6-cp37-none-linux_x86_64.whl
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:TensorRT-7.0.0.11/lib
+```
+2.4 pycuda
+```shell
+pip install pycuda==2022.1
+```
+</details>
+
 Step.1 convert torch model to onnx or trt engine, and the output file would be generated in deploy/. Note the convert mode has three options:[onnx, trt_32, trt_16].
 ```shell script
-python tools/converter.py --output-name deploy/airdet_s.onnx -f configs/airdet_s.py -c airdet_s_ckpt.pth --inference_h 640 --inference_w 640 --mode trt_16
+python tools/converter.py --output-name deploy/airdet_s.onnx -f configs/airdet_s.py -c airdet_s.pth --batch_size 1 --img_size 640 --mode trt_32
 ```
 
 Step.2 trt engine evaluation and inference speed computation and appoint trt engine by --trt.
 ```shell script
-python -m torch.distributed.launch --nproc_per_node=1 tools/trt_eval.py -f configs/airdet_s.py --trt deploy/airdet_s_fp16.trt --inference_h 640 --inference_w 640
+python -m torch.distributed.launch --nproc_per_node=1 tools/trt_eval.py -f configs/airdet_s.py --trt deploy/airdet_s_32.trt --batch_size 1 --img_size 640
 ```
 
 Step.3 trt engine inference demo and appoint test image by -p.
 ```shell script
-python tools/trt_inference.py -f configs/airdet_s.py -t deploy/airdet_s_fp16.trt -p assets/dog.jpg --input_shape 640,640
+python tools/trt_inference.py -f configs/airdet_s.py -t deploy/airdet_s_32.trt -p assets/dog.jpg --img_size 640 --nms 0.7
 ```
 

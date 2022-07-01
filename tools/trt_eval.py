@@ -47,10 +47,7 @@ def make_parser():
         "--batch_size", type=int, default=None, help="inference image batch nums"
     )
     parser.add_argument(
-        "--inference_h", type=int, default="640", help="inference image shape of h"
-    )
-    parser.add_argument(
-        "--inference_w", type=int, default="640", help="inference image shape of w"
+        "--img_size", type=int, default="640", help="inference image shape"
     )
     parser.add_argument("--seed", default=None, type=int, help="eval seed")
     parser.add_argument(
@@ -99,7 +96,7 @@ def main():
         config.testing.nms_iou_threshold = args.nms
     if args.batch_size is not None:
         config.testing.images_per_batch = args.batch_size
-
+    config.dataset.size_divisibility = args.img_size # only support img square shape 
     # set logs
     loggert = trt.Logger(trt.Logger.INFO)
 
@@ -132,10 +129,8 @@ def main():
             device = device,
             output_folder = output_folder,
         )
-    context.pop()
-    del context
 
-    trt_speed(trt_path=args.trt, batch_size=args.batch_size, h=args.inference_h, w=args.inference_w)
+    trt_speed(trt_path=args.trt, batch_size=args.batch_size, h=args.img_size, w=args.img_size)
 
 if __name__ == "__main__":
     main()

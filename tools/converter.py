@@ -31,10 +31,10 @@ def make_parser():
         "--batch_size", type=int, default=None, help="inference image batch nums"
     )
     parser.add_argument(
-        "--inference_h", type=int, default="640", help="inference image shape of h"
-    )
-    parser.add_argument(
-        "--inference_w", type=int, default="640", help="inference image shape of w"
+        "--img_size", 
+        type=int, 
+        default="640", 
+        help="inference image shape"
     )
     # onnx part
     parser.add_argument(
@@ -126,7 +126,7 @@ def main():
     # decouple postprocess
     model.head.decode_in_inference = False
 
-    dummy_input = torch.randn(args.batch_size, 3, args.inference_h, args.inference_w)
+    dummy_input = torch.randn(args.batch_size, 3, args.img_size, args.img_size)
     predictions = model(dummy_input)
     torch.onnx._export(
         model,
@@ -139,7 +139,7 @@ def main():
     logger.info("generated onnx model named {}".format(args.output_name))
 
     if(args.mode in ['trt_32', 'trt_16']):
-        trt_export(args.output_name, args.batch_size, args.inference_h, args.inference_w, args.mode)
+        trt_export(args.output_name, args.batch_size, args.img_size, args.img_size, args.mode)
 
 if __name__ == "__main__":
     main()

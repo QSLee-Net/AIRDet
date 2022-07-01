@@ -62,10 +62,10 @@ def make_parser():
         help="nms threshould to filter the result.",
     )
     parser.add_argument(
-        "--input_shape",
-        type=str,
-        default="640,640",
-        help="Specify an input shape for inference.",
+        "--img_size", 
+        type=int, 
+        default="640", 
+        help="inference image shape"
     )
     return parser
 
@@ -77,7 +77,6 @@ if __name__ == '__main__':
     BATCH_SIZE = 1
     target_dtype = np.float32
 
-    input_shape = tuple(map(int, args.input_shape.split(',')))
     origin_img = np.asarray(Image.open(args.path).convert("RGB"))
 
     config = parse_config(args.config_file)
@@ -85,11 +84,10 @@ if __name__ == '__main__':
     transforms = build_transforms(config, is_train=False)
 
     img, _ = transforms(origin_img)
-    config.dataset.size_divisibility = 640
-    # print(img.shape)
+    config.dataset.size_divisibility = args.img_size
+
     img = to_image_list(img, config.dataset.size_divisibility)
     img_np = np.asarray(img.tensors)
-    # print(img_np.shape)
 
     if args.conf is not None:
         config.testing.conf_threshold = args.conf
@@ -107,7 +105,7 @@ if __name__ == '__main__':
     context = model.create_execution_context()
 
     input_batch = img_np.astype(target_dtype)
-    output = np.empty([BATCH_SIZE, 8400, 85], dtype = target_dtype)
+    output = np.empty([BATCH_SIZE, 8400, config.model.head.num_classes + 5], dtype = target_dtype)
 
     d_input = cuda.mem_alloc(1 * input_batch.nbytes)
     d_output = cuda.mem_alloc(1 * output.nbytes)
