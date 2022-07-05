@@ -9,3 +9,8 @@ CSPDarknet = {"name": "CSPDarknet",
             }
 
 
+MobileNet = {"name": "MobileNet",
+            "dep_mul": 1,
+            "wid_mul": 1,
+            "out_features": ("stage2", "stage3", "stage4"),
+            }

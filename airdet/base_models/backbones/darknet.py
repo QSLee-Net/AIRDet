@@ -25,7 +25,6 @@ class CSPDarknet(nn.Module):
         base_depth = max(round(dep_mul * 3), 1)  # 3
 
         # stem
-        # self.stem = Focus(3, base_channels, ksize=3, act=act)
         self.stem = Focus(3, base_channels, 3, act=act)
 
         # dark2

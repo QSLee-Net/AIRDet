@@ -7,7 +7,7 @@ import sys
 import os
 import importlib
 
-from .backbones import CSPDarknet
+from .backbones import CSPDarknet, MobileNet
 from .necks import GiraffeNeck, PAFPNNeck
 from .heads import GFocalV2, yolo_head
 from .augmentations import tta, strong_autoaug
@@ -45,21 +45,27 @@ yolox_model = easydict({
          "head": yolo_head,
          })
 
+airdet_Mobile = easydict({
+         "backbone": MobileNet,
+         "neck": GiraffeNeck,
+         "head": GFocalV2,
+         })
+
 training = easydict({
          "fp16": False,
-         "ema": True,
+         "ema": False,
          "ema_momentum": 0.9998,
          "use_syncBN": True,
-         ## optimizer ##
+         # optimizer
          "warmup_lr": 0,
          "base_lr_per_img": 0.01/64,
          "momentum": 0.9,
          "weight_decay": 5e-4,
-         ## scheduler ##
+         # scheduler
          "lr_scheduler": 'cosine',
          "min_lr_ratio": 0.05,
-         ###############
-         "images_per_batch": 64,
+
+         "images_per_batch": 32,
          "start_epochs": 0,
          "total_epochs": 300,
          "warmup_epochs": 5,
@@ -81,12 +87,13 @@ testing = easydict({
             "multi_gpu": True,
             "input_min_size": (640,),
             "input_max_size": 640,
-            "images_per_batch": 64,
+            "images_per_batch": 32,
           })
 
 dataset = easydict({
          "paths_catalog": join(dirname(__file__), "paths_catalog.py"),
-         "train_ann": ("coco_2017_train",),
+        #  "train_ann": ("coco_2017_train",),
+         "train_ann": ("coco_2017_val",),
          "val_ann": ("coco_2017_val",),
          "data_dir": None,
          "data_list": {},

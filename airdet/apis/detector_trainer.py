@@ -287,6 +287,7 @@ class Trainer:
                 self.meter.clear_meters()
 
             if (cur_iter + 1) % self.eval_interval_iters == 0:
+            # if True:
                 self.evaluate(local_rank)
                 self.model.train()
             synchronize()
