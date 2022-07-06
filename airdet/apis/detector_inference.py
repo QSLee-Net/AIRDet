@@ -31,7 +31,7 @@ def compute_on_dataset(config, model, data_loader, device, timer=None, tta=False
             else:
                 output = model(images.to(device))
             if timer:
-                torch.cuda.synchronize()
+                # torch.cuda.synchronize() # consume much time
                 timer.toc()
             output = [o.to(cpu_device) if o is not None else o for o in output]
         results_dict.update(

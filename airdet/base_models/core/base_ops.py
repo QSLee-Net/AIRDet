@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-
+from .ACMix import ACMix
 
 class SiLU(nn.Module):
     """export-friendly version of nn.SiLU()"""
@@ -162,11 +162,13 @@ class Bottleneck(nn.Module):
         shortcut=True,
         expansion=0.5,
         depthwise=False,
+        acmix=False,
         act="silu",
     ):
         super().__init__()
         hidden_channels = int(out_channels * expansion)
         Conv = DWConv if depthwise else BaseConv
+        Conv = ACMix if acmix else BaseConv
         self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
         self.conv2 = Conv(hidden_channels, out_channels, 3, stride=1, act=act)
         self.use_add = shortcut and in_channels == out_channels
@@ -232,6 +234,7 @@ class CSPLayer(nn.Module):
         shortcut=True,
         expansion=0.5,
         depthwise=False,
+        acmix=False,
         act="silu",
     ):
         """
@@ -248,7 +251,7 @@ class CSPLayer(nn.Module):
         self.conv3 = BaseConv(2 * hidden_channels, out_channels, 1, stride=1, act=act)
         module_list = [
             Bottleneck(
-                hidden_channels, hidden_channels, shortcut, 1.0, depthwise, act=act
+                hidden_channels, hidden_channels, shortcut, 1.0, depthwise, acmix, act=act
             )
             for _ in range(n)
         ]
@@ -314,16 +317,6 @@ class fast_Focus(nn.Module):
           [w3, w4]]],
         [[[w1, w2],
           [w3, w4]]]]))
-
-
-# shufflenet block
-def channel_shuffle(x, groups=2):
-    bat_size, channels, w, h = x.shape
-    group_c = channels // groups
-    x = x.view(bat_size, groups, group_c, w, h)
-    x = torch.transpose(x, 1, 2).contiguous()
-    x = x.view(bat_size, -1, w, h)
-    return x
 
 
 def conv_bn(in_c, out_c, stride=2):
@@ -525,3 +518,78 @@ class InvertedResidual(nn.Module):
             return x + self.conv(x)
         else:
             return self.conv(x)
+
+
+# shufflenet block
+def channel_shuffle(x, groups=2):
+    bat_size, channels, w, h = x.shape
+    group_c = channels // groups
+    x = x.view(bat_size, groups, group_c, w, h)
+    x = torch.transpose(x, 1, 2).contiguous()
+    x = x.view(bat_size, -1, w, h)
+    return x
+
+
+class ShuffleBottleneck(nn.Module):
+    def __init__(self, inp, oup, stride, benchmodel):
+        super(ShuffleBottleneck, self).__init__()
+        self.benchmodel = benchmodel
+        self.stride = stride
+        assert stride in [1, 2]
+
+        oup_inc = oup//2
+        
+        if self.benchmodel == 1:
+            #assert inp == oup_inc
+        	self.banch2 = nn.Sequential(
+                # pw
+                nn.Conv2d(oup_inc, oup_inc, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                nn.ReLU(inplace=True),
+                # dw
+                nn.Conv2d(oup_inc, oup_inc, 3, stride, 1, groups=oup_inc, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                # pw-linear
+                nn.Conv2d(oup_inc, oup_inc, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                nn.ReLU(inplace=True),
+            )                
+        else:                  
+            self.banch1 = nn.Sequential(
+                # dw
+                nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                nn.BatchNorm2d(inp),
+                # pw-linear
+                nn.Conv2d(inp, oup_inc, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                nn.ReLU(inplace=True),
+            )        
+    
+            self.banch2 = nn.Sequential(
+                # pw
+                nn.Conv2d(inp, oup_inc, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                nn.ReLU(inplace=True),
+                # dw
+                nn.Conv2d(oup_inc, oup_inc, 3, stride, 1, groups=oup_inc, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                # pw-linear
+                nn.Conv2d(oup_inc, oup_inc, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(oup_inc),
+                nn.ReLU(inplace=True),
+            )
+          
+    @staticmethod
+    def _concat(x, out):
+        # concatenate along channel axis
+        return torch.cat((x, out), 1)        
+
+    def forward(self, x):
+        if 1==self.benchmodel:
+            x1 = x[:, :(x.shape[1]//2), :, :]
+            x2 = x[:, (x.shape[1]//2):, :, :]
+            out = self._concat(x1, self.banch2(x2))
+        elif 2==self.benchmodel:
+            out = self._concat(self.banch1(x), self.banch2(x))
+
+        return channel_shuffle(out, 2)

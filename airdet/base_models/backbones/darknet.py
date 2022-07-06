@@ -14,6 +14,7 @@ class CSPDarknet(nn.Module):
         wid_mul,
         out_features=("dark3", "dark4", "dark5"),
         depthwise=False,
+        acmix=False,
         act="silu",
     ):
         super(CSPDarknet, self).__init__()
@@ -35,6 +36,7 @@ class CSPDarknet(nn.Module):
                 base_channels * 2,
                 n=base_depth,
                 depthwise=depthwise,
+                acmix=False,
                 act=act,
             ),
         )
@@ -47,6 +49,7 @@ class CSPDarknet(nn.Module):
                 base_channels * 4,
                 n=base_depth * 3,
                 depthwise=depthwise,
+                acmix=False,
                 act=act,
             ),
         )
@@ -59,6 +62,7 @@ class CSPDarknet(nn.Module):
                 base_channels * 8,
                 n=base_depth * 3,
                 depthwise=depthwise,
+                acmix=acmix,
                 act=act,
             ),
         )
@@ -73,6 +77,7 @@ class CSPDarknet(nn.Module):
                 n=base_depth,
                 shortcut=False,
                 depthwise=depthwise,
+                acmix=acmix,
                 act=act,
             ),
         )

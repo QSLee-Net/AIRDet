@@ -7,7 +7,7 @@ import sys
 import os
 import importlib
 
-from .backbones import CSPDarknet, MobileNet
+from .backbones import CSPDarknet, MobileNet, ShuffleNet
 from .necks import GiraffeNeck, PAFPNNeck
 from .heads import GFocalV2, yolo_head
 from .augmentations import tta, strong_autoaug
@@ -47,6 +47,12 @@ yolox_model = easydict({
 
 airdet_Mobile = easydict({
          "backbone": MobileNet,
+         "neck": GiraffeNeck,
+         "head": GFocalV2,
+         })
+
+airdet_Shuffle = easydict({
+         "backbone": ShuffleNet,
          "neck": GiraffeNeck,
          "head": GFocalV2,
          })
@@ -92,8 +98,7 @@ testing = easydict({
 
 dataset = easydict({
          "paths_catalog": join(dirname(__file__), "paths_catalog.py"),
-        #  "train_ann": ("coco_2017_train",),
-         "train_ann": ("coco_2017_val",),
+         "train_ann": ("coco_2017_train",),
          "val_ann": ("coco_2017_val",),
          "data_dir": None,
          "data_list": {},

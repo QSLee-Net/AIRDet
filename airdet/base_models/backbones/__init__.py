@@ -5,6 +5,7 @@ import copy
 
 from .darknet import CSPDarknet
 from .mobilenet import MobileNet
+from .shufflenet import ShuffleNet
 
 def build_backbone(cfg):
     backbone_cfg = copy.deepcopy(cfg)
@@ -13,3 +14,5 @@ def build_backbone(cfg):
         return CSPDarknet(**backbone_cfg)
     elif name == "MobileNet":
         return MobileNet(**backbone_cfg)
+    elif name == "ShuffleNet":
+        return ShuffleNet(**backbone_cfg)
