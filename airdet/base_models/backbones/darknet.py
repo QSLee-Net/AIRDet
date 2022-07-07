@@ -62,7 +62,7 @@ class CSPDarknet(nn.Module):
                 base_channels * 8,
                 n=base_depth * 3,
                 depthwise=depthwise,
-                acmix=acmix,
+                acmix=False,
                 act=act,
             ),
         )

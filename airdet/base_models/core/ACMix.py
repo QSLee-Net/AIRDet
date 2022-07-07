@@ -5,6 +5,7 @@ import time
 
 def position(H, W, is_cuda=True):
     if is_cuda:
+        # torch.arange(-1.0, 1.0+(2.0/(W-1)), 2.0/(W-1))
         loc_w = torch.linspace(-1.0, 1.0, W).cuda().unsqueeze(0).repeat(H, 1)
         loc_h = torch.linspace(-1.0, 1.0, H).cuda().unsqueeze(1).repeat(1, W)
     else:
@@ -26,6 +27,17 @@ def init_rate_0(tensor):
     if tensor is not None:
         tensor.data.fill_(0.)
 
+def unfold(x, kernel_size=7, padding=0, stride=1):
+    "Implement by sujin.zy"
+    b, c, h, w = x.shape
+    o_2 = []
+    for i in range(0, h-kernel_size+1):
+        for j in range(0, w-kernel_size+1):
+            o_2.append(x[:, :, i:i+kernel_size, j:j+kernel_size].reshape(b, c*kernel_size*kernel_size))
+
+    o_2 = torch.stack(o_2, dim=2)
+
+    return o_2
 
 class ACMix(nn.Module):
     def __init__(self, in_planes, out_planes, kernel_conv=3, stride=1, kernel_att=7, head=4, dilation=1, act=None):
@@ -47,7 +59,7 @@ class ACMix(nn.Module):
         self.conv_p = nn.Conv2d(2, self.head_dim, kernel_size=1)
 
         self.padding_att = (self.dilation * (self.kernel_att - 1) + 1) // 2
-        self.pad_att = torch.nn.ReflectionPad2d(self.padding_att)
+        # self.pad_att = torch.nn.ZeroPad2d(self.padding_att)
         self.unfold = nn.Unfold(kernel_size=self.kernel_att, padding=0, stride=self.stride)
         self.softmax = torch.nn.Softmax(dim=1)
 
@@ -85,13 +97,16 @@ class ACMix(nn.Module):
         else:
             q_pe = pe
 
-        unfold_k = self.unfold(self.pad_att(k_att)).view(b*self.head, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out) # b*head, head_dim, k_att^2, h_out, w_out
-        unfold_rpe = self.unfold(self.pad_att(pe)).view(1, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out) # 1, head_dim, k_att^2, h_out, w_out
+        _, _, h, w = k_att.shape
+        unfold_k = self.unfold(F.interpolate(k_att, (h+6, w+6))).view(b*self.head, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out) # b*head, head_dim, k_att^2, h_out, w_out
+        _, _, h, w = pe.shape
+        unfold_rpe = self.unfold(F.interpolate(pe, (h+6, w+6))).view(1, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out) # 1, head_dim, k_att^2, h_out, w_out
         
         att = (q_att.unsqueeze(2)*(unfold_k + q_pe.unsqueeze(2) - unfold_rpe)).sum(1) # (b*head, head_dim, 1, h_out, w_out) * (b*head, head_dim, k_att^2, h_out, w_out) -> (b*head, k_att^2, h_out, w_out)
         att = self.softmax(att)
 
-        out_att = self.unfold(self.pad_att(v_att)).view(b*self.head, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out)
+        _, _, h, w = v_att.shape
+        out_att = self.unfold(F.interpolate(v_att, (h+6, w+6))).view(b*self.head, self.head_dim, self.kernel_att*self.kernel_att, h_out, w_out)
         out_att = (att.unsqueeze(1) * out_att).sum(2).view(b, self.out_planes, h_out, w_out)
 
         # conv

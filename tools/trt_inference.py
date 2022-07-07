@@ -132,9 +132,10 @@ if __name__ == '__main__':
 
     # Model Inference
     t0 = time.time()
-    pred = predict(input_batch)
+    for _ in range(500):
+        pred = predict(input_batch)
     t_all = time.time() - t0
-    print("Prediction cost {:.4f}s".format(t_all))
+    print("Prediction cost {:.4f}s".format(t_all / 500))
 
     decode_output = torch.Tensor(pred)
     prediction = postprocess_gfocal(decode_output, config.model.head.num_classes, \
