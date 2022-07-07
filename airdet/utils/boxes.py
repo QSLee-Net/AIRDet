@@ -148,7 +148,7 @@ def postprocess_gfocal(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, im
         elif nms_type == 'mmdet':
             multi_bboxes = image_pred[:, :4]
             multi_scores = image_pred[:, 5:]
-            detections, scores, labels = multiclass_nms(multi_bboxes, multi_scores, conf_thre, nms_thre, -1)
+            detections, scores, labels = multiclass_nms(multi_bboxes, multi_scores, conf_thre, nms_thre, 500)
             # print(detections.shape, labels.shape)
             detections = torch.cat((detections, scores[:, None], scores[:, None], labels[:, None]), dim=1)
 
