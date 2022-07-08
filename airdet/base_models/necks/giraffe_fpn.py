@@ -15,6 +15,7 @@ from timm import create_model
 from timm.models.layers import create_conv2d, create_pool2d, Swish, get_act_layer
 from airdet.base_models.necks.giraffe_config import get_graph_config
 from ..core.base_ops import CSPLayer, ShuffleBlock, ShuffleCSPLayer
+from ..core.neck_ops import CSPStage
 
 _ACT_LAYER = Swish
 
@@ -380,6 +381,8 @@ class GiraffeLayer(nn.Module):
 
             if merge_type == 'csp':
                 after_combine.add_module('CspLayer', CSPLayer(in_channels, out_channels, 2, shortcut=True, depthwise=False, act='silu'))
+            elif merge_type == 'reparam_csp':
+                after_combine.add_module('CspStage', CSPStage('BasicBlock', in_channels, out_channels, 1, spp=True))
             elif merge_type == 'shuffle':
                 after_combine.add_module('shuffleBlock', ShuffleBlock(in_channels, in_channels))
                 after_combine.add_module('conv1x1', create_conv2d(in_channels, out_channels, kernel_size=1))
