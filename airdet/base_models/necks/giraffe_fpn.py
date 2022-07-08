@@ -15,7 +15,7 @@ from timm import create_model
 from timm.models.layers import create_conv2d, create_pool2d, Swish, get_act_layer
 from airdet.base_models.necks.giraffe_config import get_graph_config
 from ..core.base_ops import CSPLayer, ShuffleBlock, ShuffleCSPLayer
-from ..core.neck_ops import CSPStage
+from ..core.neck_ops import RepBlock
 
 _ACT_LAYER = Swish
 
@@ -379,26 +379,29 @@ class GiraffeLayer(nn.Module):
 
             out_channels = fpn_channels[fpn_channels_idx]
 
-            if merge_type == 'csp':
-                after_combine.add_module('CspLayer', CSPLayer(in_channels, out_channels, 2, shortcut=True, depthwise=False, act='silu'))
-            elif merge_type == 'reparam_csp':
-                after_combine.add_module('CspStage', CSPStage('BasicBlock', in_channels, out_channels, 1, spp=True))
-            elif merge_type == 'shuffle':
-                after_combine.add_module('shuffleBlock', ShuffleBlock(in_channels, in_channels))
-                after_combine.add_module('conv1x1', create_conv2d(in_channels, out_channels, kernel_size=1))
-            elif merge_type == 'conv':
-                after_combine.add_module('conv1x1', create_conv2d(in_channels, out_channels, kernel_size=1))
-                conv_kwargs = dict(
-                    in_channels=out_channels,
-                    out_channels=out_channels,
-                    kernel_size=3, padding=pad_type,
-                    bias=False, norm_layer=norm_layer, act_layer=act_layer)
-                if not conv_bn_relu_pattern:
-                    conv_kwargs['bias'] = redundant_bias
-                    conv_kwargs['act_layer'] = None
-                    after_combine.add_module('act', act_layer(inplace=True))
-                after_combine.add_module(
-                    'conv', SeparableConv2d(**conv_kwargs) if separable_conv else ConvBnAct2d(**conv_kwargs))
+            if len(fnode_cfg['inputs_offsets']) == 1:
+                after_combine.add_module('identity', nn.Identity())
+            else:
+                if merge_type == 'csp':
+                    after_combine.add_module('CspLayer', CSPLayer(in_channels, out_channels, 2, shortcut=True, depthwise=False, act='silu'))
+                elif merge_type == 'reparam_csp':
+                    after_combine.add_module('RepBlock', RepBlock(in_channels, out_channels, 1))
+                elif merge_type == 'shuffle':
+                    after_combine.add_module('shuffleBlock', ShuffleBlock(in_channels, in_channels))
+                    after_combine.add_module('conv1x1', create_conv2d(in_channels, out_channels, kernel_size=1))
+                elif merge_type == 'conv':
+                    after_combine.add_module('conv1x1', create_conv2d(in_channels, out_channels, kernel_size=1))
+                    conv_kwargs = dict(
+                        in_channels=out_channels,
+                        out_channels=out_channels,
+                        kernel_size=3, padding=pad_type,
+                        bias=False, norm_layer=norm_layer, act_layer=act_layer)
+                    if not conv_bn_relu_pattern:
+                        conv_kwargs['bias'] = redundant_bias
+                        conv_kwargs['act_layer'] = None
+                        after_combine.add_module('act', act_layer(inplace=True))
+                    after_combine.add_module(
+                        'conv', SeparableConv2d(**conv_kwargs) if separable_conv else ConvBnAct2d(**conv_kwargs))
 
             self.fnode.append(GiraffeNode(combine=combine, after_combine=after_combine))
             self.feature_info[i] = dict(num_chs=fpn_channels[fpn_channels_idx], reduction=reduction)
