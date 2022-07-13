@@ -14,13 +14,13 @@ AIRDet is an efficiency-oriented anchor-free object detector, aims to enable rob
 - AIRDet-tiny and AIRDet-nano.
 - Model distillation. 
 
-
 ## Model Zoo
 |Model |size |mAP<sup>val<br>0.5:0.95 | Latency V100<br>TRT-FP32-BS32| Latency V100<br>TRT-FP16-BS32| FLOPs<br>(G)| weights |
 | ------        |:---: | :---:     |:---:|:---: | :---: | :----: |
 |[Yolox-s](./configs/yolox_s.py)   | 640 | 40.5 | 3.4 | 2.3 | 26.81 | [link]() |
-|[AIRDet-s](./configs/airdet_s.py) | 640 | 44.2 | 4.4 | 2.8 | 27.56 | [link]() |
-|[AIRDet-m](./configs/airdet_m.py) | 640 | 48.2 | 8.3 | 4.4 | 76.61 | [link]() |
+|[AIRDet-s](./configs/airdet_s.py) | 640 | 44.2 | 4.4 | 2.8 | 27.56 | [link](https://drive.google.com/file/d/119W87oZ4zcJvvjzYCmBudX38cRpZbQc4/view?usp=sharing) |
+|[AIRDet-m](./configs/airdet_m.py) | 640 | 48.2 | 8.3 | 4.4 | 76.61 | [link](https://drive.google.com/file/d/1EjsdQTbUF4JMzH6wxXcYI6zs88c--PzL/view?usp=sharing) |
+
 
 - We report the mAP of models on COCO2017 validation set.
 - The latency in this table are measured without post-processing.
