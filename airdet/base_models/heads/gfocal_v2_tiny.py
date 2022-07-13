@@ -228,7 +228,7 @@ class GFocalHead_Tiny(nn.Module):
             normal_init(self.gfl_cls[i], std=0.01, bias=bias_cls)
             normal_init(self.gfl_reg[i], std=0.01)
 
-    def forward(self, xin, labels=None, imgs=None):
+    def forward(self, xin, labels=None, imgs=None, conf_thre=0.05, nms_thre=0.7):
 
         # prepare labels during training
         b, c, h, w = xin[0].shape
@@ -279,7 +279,7 @@ class GFocalHead_Tiny(nn.Module):
                 flatten_bbox_preds,
                 mlvl_priors)
             if self.decode_in_inference:
-                output = postprocess(output, self.num_classes, 0.05, 0.6, imgs)
+                output = postprocess(output, self.num_classes, conf_thre, nms_thre, imgs)
             return output
 
     def forward_single(self, x, cls_convs, reg_convs, gfl_cls, gfl_reg, reg_conf, scale):
