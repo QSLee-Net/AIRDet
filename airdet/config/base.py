@@ -137,6 +137,20 @@ class Config(metaclass=ABCMeta):
                 factory="PascalVOCDataset",
                 args=args,
             )
+        elif "custom" in name:
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                data_dir=join(data_dir, attrs["data_dir"]),
+                split=attrs["split"],
+		CLASS2ID=self.dataset.class2id,
+            )
+            return dict(
+                factory="CustomVOCDataset",
+                args=args,
+            )
+		
+			
 
         return None
         # raise RuntimeError("Dataset not available: {}".format(name))

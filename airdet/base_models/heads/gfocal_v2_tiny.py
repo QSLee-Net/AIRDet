@@ -16,7 +16,7 @@ from ..core.utils import multi_apply, unmap, reduce_mean, images_to_levels, Scal
 from ..losses.gfocal_loss import GIoULoss, DistributionFocalLoss, QualityFocalLoss
 from airdet.utils import postprocess_gfocal as postprocess
 
-def xyxy2CxCywh(xyxy, size=(640,640)):
+def xyxy2CxCywh(xyxy, size=None):
     x1 = xyxy[..., 0]
     y1 = xyxy[..., 1]
     x2 = xyxy[..., 2]
@@ -24,9 +24,12 @@ def xyxy2CxCywh(xyxy, size=(640,640)):
 
     cx = (x1+x2) /2
     cy = (y1+y2) /2
+
+    w = x2 - x1
+    h = y2 - y1
     if size is not None:
-    	w = (x2-x1).clamp(min=0, max=size[1])
-    	h = (y2-y1).clamp(min=0, max=size[0])
+    	w = w.clamp(min=0, max=size[1])
+    	h = h.clamp(min=0, max=size[0])
     return torch.stack([cx, cy, w, h], axis=-1)
 
 
