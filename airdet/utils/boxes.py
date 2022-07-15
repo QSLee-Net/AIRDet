@@ -120,7 +120,6 @@ def postprocess_gfocal(prediction, num_classes, conf_thre=0.7, nms_thre=0.45, im
     box_corner[:, :, 2] = prediction[:, :, 0] + prediction[:, :, 2] / 2
     box_corner[:, :, 3] = prediction[:, :, 1] + prediction[:, :, 3] / 2
     prediction[:, :, :4] = box_corner[:, :, :4]
-    print(conf_thre, nms_thre)
     output = [None for _ in range(len(prediction))]
     for i, image_pred in enumerate(prediction):
         # If none are remaining => process next image

@@ -169,7 +169,7 @@ sudo chmod a+r /usr/local/cuda/lib64/libcudnn*
 ```shell
 cd TensorRT-7.2.1.6/python
 pip install tensorrt-7.2.1.6-cp37-none-linux_x86_64.whl
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:TensorRT-7.0.0.11/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:TensorRT-7.2.1.6/lib
 ```
 2.4 pycuda
 ```shell
