@@ -342,7 +342,7 @@ class Trainer:
         output_folders = [None] * len(self.config.dataset.val_ann)
         if self.config.miscs.output_dir:
             for idx, dataset_name in enumerate(self.config.dataset.val_ann):
-                output_folder = os.path.join(self.config.miscs.output_dir, "inference", dataset_name)
+                output_folder = os.path.join(self.config.miscs.output_dir, self.config.exp_name, "inference", dataset_name)
                 if local_rank == 0:
                     mkdir(output_folder)
                 output_folders[idx] = output_folder
