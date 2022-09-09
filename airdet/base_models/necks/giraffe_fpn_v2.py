@@ -1,3 +1,4 @@
+# Copyright (C) Alibaba Group Holding Limited. All rights reserved.
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
